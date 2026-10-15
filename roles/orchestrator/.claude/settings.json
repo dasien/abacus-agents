@@ -1,0 +1,57 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit|Read|Grep|SendMessage|mcp__.*|computer",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ABACUS_ROLE=orchestrator python3 \"$CLAUDE_PROJECT_DIR/../hooks/guards.py\" role-policy foreign-bd destructive-git operator-only secrets human-only"
+          }
+        ]
+      },
+      {
+        "matcher": "SendMessage",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/../hooks/sendmessage_log.py\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/../hooks/redact.py\""
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[abacus] logbook digest (an index into durable state; run /recover before acting):'; \"${ABACUS_HOME:-$HOME/.abacus}/bin/abacus-logbook\" digest"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "NotebookEdit"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "abacus-memory"
+  ]
+}

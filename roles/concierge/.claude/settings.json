@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit|Read|Grep|SendMessage|mcp__.*|computer",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ABACUS_ROLE=concierge python3 \"$CLAUDE_PROJECT_DIR/../hooks/guards.py\" role-policy role-commands foreign-bd destructive-git operator-only secrets human-only"
+          }
+        ]
+      },
+      {
+        "matcher": "SendMessage",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/../hooks/sendmessage_log.py\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/../hooks/redact.py\""
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": ["Edit", "Write", "MultiEdit", "NotebookEdit"]
+  },
+  "enabledMcpjsonServers": ["abacus-memory"]
+}

@@ -1,0 +1,46 @@
+{
+  "workers": {
+    "agent:orchestrator": {
+      "repo": "~/.abacus/agents/orchestrator",
+      "role": "orchestrator",
+      "agent": "orchestrator",
+      "model": "opus",
+      "permission_mode": "auto",
+      "authority_check": "deployed",
+      "generations": true,
+      "prompt": "/recover"
+    },
+    "agent:concierge": {
+      "repo": "~/.abacus/agents/concierge",
+      "role": "concierge",
+      "agent": "concierge",
+      "model": "sonnet",
+      "permission_mode": "auto",
+      "authority_check": "deployed",
+      "prompt": "/status"
+    },
+    "agent:planner": {
+      "repo": "~/.abacus/agents/planner",
+      "role": "planner",
+      "agent": "planner",
+      "model": "opus",
+      "permission_mode": "auto",
+      "authority_check": "deployed",
+      "prompt": "Wait for a HANDOFF from agent:concierge, then use /plan or /revise."
+    },
+    "coder:repo-a": {
+      "repo": "~/Source/repos/abacus-demo/repo-a",
+      "role": "coder",
+      "model": "sonnet",
+      "permission_mode": "auto",
+      "prompt": "You are coder:repo-a, an Abacus worker. Run /abacus-worker and wait for dispatches."
+    },
+    "coder:repo-b": {
+      "repo": "~/Source/repos/abacus-demo/repo-b",
+      "role": "coder",
+      "model": "sonnet",
+      "permission_mode": "auto",
+      "prompt": "You are coder:repo-b, an Abacus worker. Run /abacus-worker and wait for dispatches."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "agent:planner",
+  "model": "opus",
+  "permission_mode": "auto",
+  "note": "turns a source into draft beads across fleet repos for operator review; files and shapes drafts only"
+}

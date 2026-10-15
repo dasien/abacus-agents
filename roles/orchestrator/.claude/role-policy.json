@@ -1,0 +1,4 @@
+{
+  "name": "agent:orchestrator",
+  "writable": ["state", "pages", "retros", "docs"]
+}

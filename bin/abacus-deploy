@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+"""abacus-deploy: deploy role definitions into the agents space, out of the roles' own reach.
+
+The builder repository (this one) owns every role source. Deploy copies the
+managed files from the PUBLISHED commit into $ABACUS_HOME/agents/, writes a
+manifest (.deployed) naming each file and the commit, removes managed files that
+no longer exist in source, never touches runtime folders (state, pages, retros,
+docs), and reports which live role sessions need a restart.
+
+A change made directly in a role directory is lost on the next deploy, by design.
+"""
+import argparse
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+RUNTIME = ("state", "pages", "retros", "docs")
+
+
+def home():
+    return Path(os.environ.get("ABACUS_HOME", Path.home() / ".abacus")).expanduser()
+
+
+def git(*args, cwd=ROOT):
+    return subprocess.run(["git", "-C", str(cwd), *args], capture_output=True, text=True)
+
+
+def snapshot_commit(path):
+    """The commit an installed snapshot was published from (git archive copies carry .published, no .git)."""
+    pub = Path(path) / ".published"
+    return pub.read_text().strip() if pub.exists() else None
+
+
+def published(allow_unpublished):
+    snap = snapshot_commit(ROOT)
+    if snap:
+        return snap  # an installed snapshot is, by construction, a published commit
+    if git("status", "--porcelain").stdout.strip():
+        if not allow_unpublished:
+            sys.exit("REFUSED: the builder tree has uncommitted changes; deploy only from a published commit "
+                     "(or pass --allow-unpublished for a local trial)")
+    up = git("rev-parse", "@{u}")
+    rev = git("rev-parse", "--verify", "-q", "HEAD")
+    head = rev.stdout.strip() if rev.returncode == 0 else "uncommitted"
+    if up.returncode == 0 and up.stdout.strip() != head and not allow_unpublished:
+        sys.exit("REFUSED: HEAD is not the published commit (push first, or --allow-unpublished)")
+    return head
+
+
+def sources(standards):
+    """Yield (source path, path relative to the agents space)."""
+    for role_dir in sorted((ROOT / "roles").iterdir()):
+        if not role_dir.is_dir():
+            continue
+        for f in sorted(role_dir.rglob("*")):
+            if f.is_file() and "__pycache__" not in f.parts:
+                yield f, Path(role_dir.name) / f.relative_to(role_dir)
+    for name in ("guards.py", "_shell.py", "_secrets.py", "redact.py"):
+        yield standards / "canonical" / "hooks" / name, Path("hooks") / name
+    yield standards / "canonical" / "skills" / "judgments" / "SKILL.md", \
+        Path("orchestrator/.claude/skills/judgments/SKILL.md")
+    yield ROOT / "protocol" / "PROTOCOL.md", Path("orchestrator/protocol/PROTOCOL.md")
+    yield ROOT / "protocol" / "PROTOCOL.md", Path("planner/protocol/PROTOCOL.md")
+
+
+def sha(p):
+    return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+
+
+def main(argv=None):
+    p = argparse.ArgumentParser(prog="abacus-deploy", description=__doc__.split("\n")[0])
+    p.add_argument("--standards", help="path to abacus-standards (default: from ~/.abacus/config.json)")
+    p.add_argument("--fleet", help="fleet registry source (default: ~/.abacus/fleet.json)")
+    p.add_argument("--allow-unpublished", action="store_true")
+    p.add_argument("--dry-run", action="store_true")
+    a = p.parse_args(argv)
+
+    cfg_path = home() / "config.json"
+    cfg = json.loads(cfg_path.read_text()) if cfg_path.exists() else {}
+    standards = Path(a.standards or cfg.get("standards_path") or ROOT.parent / "abacus-standards").expanduser()
+    if not (standards / "canonical" / "hooks" / "guards.py").exists():
+        sys.exit(f"REFUSED: {standards} is not abacus-standards (no canonical/hooks/guards.py)")
+    fleet = Path(a.fleet or home() / "fleet.json").expanduser()
+    if not fleet.exists():
+        sys.exit(f"REFUSED: fleet registry {fleet} not found (copy fleet.example.json there and edit it)")
+    commit = published(a.allow_unpublished)
+
+    target = home() / "agents"
+    manifest_path = target / ".deployed"
+    old = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"files": {}}
+    files, changed_roles = {}, set()
+    plan = list(sources(standards)) + [(fleet, Path("fleet.json"))]
+    for src, rel in plan:
+        if rel.parts[0] != "hooks" and len(rel.parts) > 1 and rel.parts[1] in RUNTIME:
+            continue  # never manage runtime folders
+        files[str(rel)] = sha(src)
+        dst_now = target / rel
+        drifted = not dst_now.exists() or sha(dst_now) != files[str(rel)]
+        if old["files"].get(str(rel)) != files[str(rel)] or drifted:
+            changed_roles.add(rel.parts[0])
+            if not a.dry_run:
+                dst = target / rel
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst)
+    removed = [r for r in old["files"] if r not in files]
+    for r in removed:
+        changed_roles.add(Path(r).parts[0])
+        if not a.dry_run and (target / r).exists():
+            (target / r).unlink()
+    if a.dry_run:
+        print(json.dumps({"would_change": sorted(changed_roles), "files": len(files)}, indent=2))
+        return 0
+    for role_dir in (ROOT / "roles").iterdir():
+        if role_dir.is_dir() and role_dir.name != "hooks":
+            for rt in RUNTIME:
+                (target / role_dir.name / rt).mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps({"commit": commit, "standards": snapshot_commit(standards) or
+                                         git("rev-parse", "--short", "HEAD", cwd=standards).stdout.strip() or "unknown",
+                                         "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                                         "files": files}, indent=2))
+    live = []
+    try:
+        sessions = json.loads(subprocess.run(["claude", "agents", "--json"], capture_output=True,
+                                             text=True, timeout=30).stdout or "[]")
+        live = sorted({s.get("name", "") for s in sessions if s.get("pid")})  # stopped sessions stay listed, no pid
+    except (OSError, ValueError, subprocess.SubprocessError):
+        pass
+    restart = sorted(n for n in live for role in changed_roles if n.startswith(f"agent:{role}"))
+    if "hooks" in changed_roles or "fleet.json" in changed_roles:
+        restart = sorted(set(restart) | {n for n in live if n.startswith("agent:")})
+    print(json.dumps({"deployed": str(target), "commit": commit, "changed": sorted(changed_roles),
+                      "removed": removed, "restart_needed": restart}, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

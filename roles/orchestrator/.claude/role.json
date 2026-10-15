@@ -1,0 +1,6 @@
+{
+  "name": "agent:orchestrator",
+  "model": "opus",
+  "permission_mode": "auto",
+  "note": "auto by default; bypassPermissions is allowed only after the operator accepts it, because the role-policy fence and foreign-bd/secrets/human-only guards are wired"
+}

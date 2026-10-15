@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "abacus_orchestrator",
+  "project_id": "6f40e685-2c93-42f1-a312-5072c1668262"
+}

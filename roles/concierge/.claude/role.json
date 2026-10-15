@@ -1,0 +1,6 @@
+{
+  "name": "agent:concierge",
+  "model": "sonnet",
+  "permission_mode": "auto",
+  "note": "operator front door: read-only plus one write (ruling add); may start the orchestrator on demand"
+}
