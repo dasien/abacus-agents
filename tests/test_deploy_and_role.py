@@ -197,6 +197,20 @@ class ConciergeTest(unittest.TestCase):
         self.assertEqual(self.call('abacus-logbook ruling add --words "ship everything now" --where agent:concierge',
                                    transcript=str(tr)), 2)
 
+    def test_lanes_open_and_start_their_orchestrators_but_nothing_more(self):
+        for cmd in ('abacus-logbook lane open android --goal "build the login fix" --repo /tmp/android --item and-1',
+                    "abacus-logbook lane show", 'abacus-logbook lane find "the android work"',
+                    "abacus-logbook lane owner /tmp/android", "abacus-logbook lane rename android login-fix",
+                    "abacus-status --lane android",
+                    "abacus-session start agent:orchestrator-android --prompt '/recover first' --reason 'operator: x'"):
+            self.assertEqual(self.call(cmd), 0, cmd)
+        # negative controls: closing is the lane orchestrator's job; no workers; no odd session names
+        for cmd in ("abacus-logbook lane close android", "abacus-session start coder:android",
+                    "abacus-session start agent:orchestrator-Android --prompt x",
+                    "abacus-session start agent:concierge-2 --prompt x",
+                    "abacus-logbook dispatch add a-1 --repo /x --worker coder:a --lane android"):
+            self.assertEqual(self.call(cmd), 2, cmd)
+
     def test_agent_definition_has_no_write_tools_and_starts_with_status(self):
         text = (ROOT / "roles/concierge/.claude/agents/concierge.md").read_text()
         tools = [t.strip() for t in re.search(r"^tools:(.*)$", text, re.M).group(1).split(",")]
@@ -370,4 +384,24 @@ class FixesFromThePlannerRunTest(unittest.TestCase):
         self.assertIn("ruling: #<id>", relay)
         recover = (ROOT / "roles/orchestrator/.claude/skills/recover/SKILL.md").read_text()
         self.assertIn("**The decisions page.**", recover)
+
+
+class LanesAgreeTest(unittest.TestCase):
+    """0.10.0: the protocol, the orchestrator, the concierge and the fleet agree on lanes."""
+
+    def test_lanes_are_described_where_each_agent_reads_them(self):
+        proto = (ROOT / "protocol" / "PROTOCOL.md").read_text()
+        self.assertIn("## Lanes", proto)
+        self.assertIn("agent:orchestrator-<lane>", proto)
+        orch = (ROOT / "roles/orchestrator/CLAUDE.md").read_text()
+        for phrase in ("pages/decisions-<lane>.md", "--lane <lane> --report-to", "abacus-logbook lane close <lane>"):
+            self.assertIn(phrase, orch)
+        intake = " ".join((ROOT / "roles/concierge/.claude/skills/intake/SKILL.md").read_text().split())
+        self.assertIn("abacus-logbook lane owner <repo path>", intake)
+        self.assertIn("Started the **<lane>** lane", intake)
+        status = " ".join((ROOT / "roles/concierge/.claude/skills/status/SKILL.md").read_text().split())
+        self.assertIn("Answer only what was asked", status)
+        self.assertIn("abacus-status --lane <lane>", status)
+        fleet = json.loads((ROOT / "fleet.example.json").read_text())["workers"]
+        self.assertTrue(fleet["agent:orchestrator"]["lanes"])
 

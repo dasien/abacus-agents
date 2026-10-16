@@ -48,6 +48,7 @@ than files.
 ## HANDOFF grammar (concierge → orchestrator or planner)
 ```
 HANDOFF <bead | "no item">: the operator said "<verbatim>" (ruling <id>, agent:concierge, <UTC time>).
+LANE: <lane>
 Wants: <the act>. Told them: <what the concierge already answered>.
 INTENT: <what should be true afterwards, in the operator's terms>.
 NOT ASKING FOR: <what the conversation ruled out>.

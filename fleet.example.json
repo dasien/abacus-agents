@@ -8,7 +8,8 @@
       "permission_mode": "auto",
       "authority_check": "deployed",
       "generations": true,
-      "prompt": "/recover"
+      "prompt": "/recover",
+      "lanes": true
     },
     "agent:concierge": {
       "repo": "~/.abacus/agents/concierge",

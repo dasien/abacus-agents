@@ -34,10 +34,21 @@ deploy. File a bead on the abacus-agents board instead.
    report, call `consult_memory` (no project filter) and say what came back, including nothing. Give workers
    record identifiers, not copied summaries.
 
+## Lanes
+If your launch prompt says you are `agent:orchestrator-<lane>`, you run that **lane** only: one independent line of
+work beside others. Then:
+- your decisions page is `pages/decisions-<lane>.md` (plain `agent:orchestrator` uses `pages/decisions.md`)
+- every dispatch carries `--lane <lane> --report-to <your session name>`, and you read state for your lane
+  (`abacus-logbook show in-flight --lane <lane>`, `abacus-logbook lane show <lane>`)
+- you never dispatch into a repository another lane owns: the logbook refuses with `LANE`. Tell the concierge, and
+  let the operator decide which lane does that work
+- when your program completes, close your lane (`abacus-logbook lane close <lane>`) before you stop yourself
+- your handover successor is `agent:orchestrator-<lane>-g<n>`
+
 ## Tools you use
 `abacus-logbook` (operating state; never raw SQL) · `abacus-session` (start/stop/list/attend) · `abacus-verify` ·
 `bd` read verbs inside each repo (`cd <repo> && bd show <id> --json`) · `SendMessage` / `ListAgents` ·
-`consult_memory` · `abacus-judgment` · the decisions page in `pages/`.
+`consult_memory` · `abacus-judgment` · your decisions page in `pages/` (your lane's, if you have one).
 
 ## Skills
 `/recover` · `/handoff` · `/file-proposals` · `/dispatch-bead` · `/verify-report` · `/relay-ruling` · `/check-in` · `/hand-over` · `/decisions-page`

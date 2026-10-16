@@ -41,6 +41,8 @@ description: Handle an inbound worker REPORT. A report is a claim; verify it aga
    retrospective (blameless; intended vs happened; where the operator corrected the system; at most three actions with
    owners) into `retros/` using the retro header. **File every action as a proposal bead** (`/file-proposals`), so
    it is tracked instead of repeated in the next retro. Then set the decisions page to `COMPLETE`, send `agent:concierge` a
-   one-line note, and, if nothing else is in flight and no card is open, **stop yourself** as your very last action:
+   one-line note, and, if nothing else is in flight and no card is open, close your lane if you have one
+   (`abacus-logbook lane close <lane>`, which releases its repositories), then **stop yourself** as your very last
+   action:
    `abacus-session stop <your session name> --reason "program complete; orchestrator runs on demand"`. The concierge
    starts a fresh orchestrator when the operator next asks for work.

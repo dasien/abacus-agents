@@ -12,7 +12,8 @@ States: `launched` → `recovered` → `finished`; or `aborted` (successor never
    (`abacus-logbook promise add ...`); every chat ruling is a recorded ruling (`/relay-ruling`). Nothing may live only
    in this conversation.
 2. **Choose the successor name:** your name plus the next generation (`agent:orchestrator` → `agent:orchestrator-g2`,
-   `-g2` → `-g3`).
+   `-g2` → `-g3`; in a lane, `agent:orchestrator-<lane>` → `agent:orchestrator-<lane>-g2`). Put your lane in the
+   working set so the successor knows which lane it runs.
 3. `abacus-logbook handover launched --from <your name> --to <successor> --working-set "<one paragraph: current plan, what you were about to do, open decisions>"`
 4. `abacus-session start <successor>`. It runs `/recover`, finds the handover, and messages you `recovered (handover <id>)`.
 5. **Wait for "recovered".** Do not dispatch or decide while waiting. If it does not arrive within 10 minutes, or the

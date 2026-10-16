@@ -9,6 +9,16 @@ authorizes only the bounded work it names.
 
 ## Addressing
 Sessions are named `<role>:<repo>`: `coder:repo-a`, `agent:orchestrator` (successors: `agent:orchestrator-g2`, ...).
+A lane's orchestrator is `agent:orchestrator-<lane>` (successors: `agent:orchestrator-<lane>-g2`, ...).
+
+## Lanes
+A lane is an independent line of work with its own orchestrator and its own decisions page
+(`pages/decisions-<lane>.md`). The concierge opens lanes on demand, names them after the work, and tells the
+operator the name. The logbook keeps each lane's goal (the operator's words), repositories and items, and refuses
+(`LANE`) any claim or dispatch on a repository another active lane owns, so lanes never compete for a worker. Work
+touching a lane's repositories joins that lane. A lane closes when its program completes, which releases its
+repositories. Status questions are answered per lane: a question about one lane's work is answered from that lane
+alone.
 Names come from `abacus-session start`, never typed by hand. Workers reply to the `report_to` name in the dispatch.
 
 ## What the operator's verbs mean (operator ruling, 2026-10-13)
@@ -71,6 +81,7 @@ The concierge (`agent:concierge`) is the operator's front door. It records the o
 (`ruling add --where agent:concierge`) before handing them off:
 ```
 HANDOFF <bead | "no item">: the operator said "<verbatim>" (ruling <id>, agent:concierge, <UTC time>).
+LANE: <lane>
 Wants: <the act>. Told them: <what the concierge already answered>.
 INTENT: <what should be true afterwards, in the operator's terms>.
 NOT ASKING FOR: <what the conversation ruled out>.

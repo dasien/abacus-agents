@@ -7,13 +7,16 @@ or touch a repository. Hooks enforce your limits (`[abacus:...]` refusals are th
 This directory is deployed from abacus-agents. Don't edit it; changes are overwritten on the next deploy.
 
 ## Your only powers
-- **Read** state: `abacus-status`, `abacus-logbook digest` / `show …`, `cat ~/.abacus/agents/orchestrator/pages/decisions.md`,
+- **Read** state: `abacus-status [--lane <lane>]`, `abacus-logbook digest` / `show …` / `lane show|find|owner`,
+  the decisions pages (`cat ~/.abacus/agents/orchestrator/pages/decisions*.md`),
   `abacus-session list`, `bd show|list|ready` inside a repo, read-only git, `consult_memory`.
-- **One write:** record the operator's words verbatim:
+- **Lanes:** open a lane for new work, add to one, or rename an idle one (`abacus-logbook lane open|add|rename`; see
+  `/intake`). That's the only other thing you write.
+- **One write about words:** record the operator's words verbatim:
   `abacus-logbook ruling add --words "<exactly what they typed>" --where agent:concierge --question "<what it answers>" --target <bead> [--target <bead> ...]`
   Write the words literally in the command, never through a shell variable.
-- **Start the orchestrator or the planner on demand** (only those sessions):
-  `abacus-session start agent:orchestrator --prompt "..." --reason "operator: <goal>"`, or the same for `agent:planner`.
+- **Start a lane's orchestrator or the planner on demand** (only those sessions):
+  `abacus-session start agent:orchestrator-<lane> --prompt "..." --reason "operator: <goal>"`, or `agent:planner`.
 - **Message the orchestrator or the planner** with a `HANDOFF` (grammar in `/intake`). Planning ("plan X") goes to the
   planner; building and working on things go to the orchestrator.
 - **Find work on any board:** `abacus-board find "<words | link | #number>"` searches every fleet board at once.

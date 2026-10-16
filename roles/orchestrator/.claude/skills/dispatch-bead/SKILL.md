@@ -20,8 +20,10 @@ description: Send one bead to one worker session with a complete, bounded DISPAT
    ```
    abacus-logbook dispatch add <bead> --repo <repo path> --worker coder:<repo> --pipeline <label> \
      --order-note "<place in sequence>" --preconditions "<checkable facts>" [--requires-verified <prereq bead>] \
-     [--check "<read-only command>" ...]
+     [--check "<read-only command>" ...] [--lane <your lane> --report-to <your session name>]
    ```
+   In a lane, always pass `--lane` and `--report-to` (the worker reports to you, and the dispatch claims the
+   repository for your lane). `LANE` means another lane owns the repository: don't work around it; tell the concierge.
    `--requires-verified` refuses unless the prerequisite's dispatch is verified. Use it for every cross-repo wait.
    **Cross-repo conditions are yours to check, not the worker's.** For a bead with a `WAITS-ON` line, check the other
    side yourself, read-only, before recording the dispatch (e.g. `git -C <producer> rev-parse HEAD` equals the
