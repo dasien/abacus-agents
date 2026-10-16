@@ -18,7 +18,7 @@ get something to a draft PR. … 'work on' is also a measure of advancement as t
 
 | The operator says | It means | It's done when |
 |---|---|---|
-| **build X** (also "ship", "finish", "deliver", "do" X) | X and every bead X needs first (its `WAITS-ON` prerequisites, in any fleet repository), each run to done in dependency order | every one of those beads is closed and its commit verified (today: on the repository's default branch; later a draft PR, see `abacus-8jc`) |
+| **build X** (also "ship", "finish", "deliver", "do" X) | X and every bead X needs first (its `WAITS-ON` prerequisites, in any fleet repository), each run to done in dependency order | every one of those beads is closed and its commit verified: on the repository's default branch, or with `"landing": "draft-pr"` at the head of the bead's open draft PR (merging stays with people) |
 | **work on X** (also "make a start on", "make progress on", "push X along") | advance X only | X reaches any report: `CLOSED`, `PROGRESS`, `BLOCKED` or `NEEDS-RULING` is a fine place to stop. Prerequisites in another repository are not started without asking |
 
 These are meanings, not required words. The operator speaks plainly: map other wording onto build, work on or plan
@@ -115,7 +115,8 @@ next: <what you will do next, or what you are waiting for>
 Gate evidence: the repository gate runs in the workflow's validate stage (under the heavy lock), and again in the
 pre-push hook before the push is accepted. A worker doesn't re-run it by hand, and a report citing the workflow's
 gate is complete. Only the worker's main loop reports. On receipt the orchestrator records the message and report, then runs
-`abacus-verify` (bead closed on the owning board, commit reachable from origin, nothing unpushed, tree clean)
+`abacus-verify` (bead closed on the owning board, commit reachable from origin, nothing unpushed, tree clean, and
+with draft-PR landing the commit at the head of the bead's open PR)
 before treating anything as done.
 
 ## Two limits, stated plainly

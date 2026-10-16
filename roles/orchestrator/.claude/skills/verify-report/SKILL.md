@@ -10,8 +10,11 @@ description: Handle an inbound worker REPORT. A report is a claim; verify it aga
 2. **By status:**
    - **CLOSED** → `abacus-verify --repo <repo> --bead <bead> --commit <sha> --record`. It also runs the dispatch's
      `--check` commands. Show the operator each check and its result (bead-closed, commit-on-remote,
-     commit-names-bead, nothing-unpushed, tree-clean, bead-worktree-saved, and each precondition). Only
-     `verified: true` counts; never re-check by hand what a check already covers.
+     commit-names-bead, nothing-unpushed, tree-clean, bead-worktree-saved, pr-head with draft-PR landing, and each
+     precondition). In a repository with `"landing": "draft-pr"`, the commit lands on the bead's own branch and
+     reaches the default branch only when someone merges its PR: commit-on-remote reads that branch, and pr-head
+     shows the commit is the head of its open draft PR. Only `verified: true` counts; never re-check by hand what a
+     check already covers.
      If any check fails, the dispatch stays unverified: message the worker about the specific failed check.
    - **NEEDS-RULING** → if a recorded delegation covers it, decide, record it (`/relay-ruling`, marked as decided by
      the orchestrator) and tell the operator. Otherwise put it on the decisions page (`/decisions-page`) as a
