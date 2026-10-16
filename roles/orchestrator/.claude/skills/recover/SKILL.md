@@ -27,9 +27,10 @@ Do these in order. Do not dispatch, decide or message a worker until step 9 prin
    `recovered (handover <id>)`.
 6. **The decisions page.** Read `pages/decisions.md`. Check every bead and commit its `Program status` names: the bead
    exists on its board (`abacus-board find <bead>`), and the commit is on its repository's default branch
-   (`git -C <repo> ls-remote origin refs/heads/<branch>`, then `git -C <repo> merge-base --is-ancestor`). A page
-   naming beads or commits that no longer exist (a demo was rebuilt, a branch reset) is stale: note it as a gap and
-   rewrite the page from what you just verified before acting.
+   (`git -C <repo> ls-remote origin refs/heads/<branch>`, then `git -C <repo> merge-base --is-ancestor`), or with
+   `"landing": "draft-pr"` at the head of the bead's open PR (`abacus-verify --repo <repo> --bead <bead> --commit
+   <sha>`, without `--record`). A page naming beads or commits that no longer exist (a demo was rebuilt, a branch
+   reset) is stale: note it as a gap and rewrite the page from what you just verified before acting.
 7. **Schedules.** CronList. Ensure exactly one check-in job exists (every 30 minutes, prompt `/check-in`); create it
    with CronCreate if missing. Recreate any scheduled responsibility recorded as a promise with a trigger.
 8. **Shared memory.** MCP tools load on demand: `ToolSearch` with `select:mcp__abacus-memory__consult_memory`, then
