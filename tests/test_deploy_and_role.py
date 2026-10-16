@@ -93,7 +93,8 @@ class RoleDefinitionTest(unittest.TestCase):
     def test_dispatch_template_carries_every_field(self):
         proto = (ROOT / "protocol/PROTOCOL.md").read_text()
         block = proto.split("### DISPATCH", 1)[1].split("```")[1]
-        for field in ("outcome:", "authority:", "preconditions:", "checks:", "order:", "validation:", "report_to:", "memory:"):
+        for field in ("outcome:", "authority:", "preconditions:", "checks:", "order:", "validation:", "report_to:",
+                      "memory:"):
             self.assertIn(field, block)
         worker = (STANDARDS / "canonical/skills/abacus-worker/SKILL.md").read_text()
         report = proto.split("### REPORT", 1)[1].split("```")[1].strip()
@@ -174,11 +175,12 @@ class ConciergeTest(unittest.TestCase):
                     "cd /tmp/repo-a && bd show a-1 --json", "git -C /tmp/repo-a log --oneline -3",
                     "abacus-session start agent:orchestrator --prompt '/recover first, then act on the HANDOFF'",
                     "abacus-session start agent:orchestrator",
-                    "abacus-session start agent:orchestrator --prompt '/recover first' --reason 'operator: ship ledger (ruling r-1)'",
+                    "abacus-session start agent:orchestrator --prompt '/recover first' "
+                    "--reason 'operator: ship ledger (ruling r-1)'",
                     "abacus-session start agent:orchestrator --reason 'operator: ship ledger'"):
             self.assertEqual(self.call(cmd), 0, cmd)
-        self.assertEqual(self.call('abacus-logbook ruling add --words "ship repo-a then repo-b" --where agent:concierge '
-                                   '--target a-1 --target b-1', transcript=str(tr)), 0)
+        self.assertEqual(self.call('abacus-logbook ruling add --words "ship repo-a then repo-b" '
+                                   '--where agent:concierge --target a-1 --target b-1', transcript=str(tr)), 0)
 
     def test_everything_else_is_refused(self):
         tr = Path(self.tmp.name) / "t2.jsonl"
@@ -277,7 +279,8 @@ class PlannerTest(unittest.TestCase):
         cls.board = Path(cls.tmp.name).resolve() / "sdk"
         cls.board.mkdir()
         subprocess.run(["git", "init", "-q"], cwd=cls.board, check=True)
-        subprocess.run(["bd", "init", "--prefix", "sdk", "--quiet", "--skip-agents", "--skip-hooks", "--non-interactive"],
+        subprocess.run(["bd", "init", "--prefix", "sdk", "--quiet", "--skip-agents", "--skip-hooks",
+                        "--non-interactive"],
                        cwd=cls.board, check=True, capture_output=True)
 
     @classmethod
@@ -304,7 +307,7 @@ class PlannerTest(unittest.TestCase):
 
     def test_plans_and_reads(self):
         b = self.board
-        for cmd in (f'abacus-board find "https://github.com/o/r/issues/1"', "abacus-logbook show rulings",
+        for cmd in ('abacus-board find "https://github.com/o/r/issues/1"', "abacus-logbook show rulings",
                     f"cd {b} && bd list --json", f"cd {b} && bd create 'Add heartbeat' -l draft --silent",
                     f"git -C {b} rev-parse --short HEAD", f"cat {b}/README.md", f"grep -rn heartbeat {b}",
                     "abacus-session stop agent:planner --reason 'plan applied'"):
