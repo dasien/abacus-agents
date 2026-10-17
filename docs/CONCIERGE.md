@@ -9,6 +9,7 @@ format. The decisions below were taken on 2026-10-11; the planner joined in 0.7.
 |---|---|
 | How the operator reaches it | A dedicated background session, `agent:concierge`, in Agent View (`claude agents`, switch to it), or `abacus chat`, which starts it if needed and attaches |
 | Orchestrator and planner lifecycle | **On demand.** The concierge may start the orchestrator or the planner (only those sessions) when the operator asks for work or a plan. Both stop themselves when done; nothing idles between programs |
+| Unrelated work at the same time | **Lanes** (0.10.0). Each independent line of work gets its own orchestrator, `agent:orchestrator-<lane>`, with its own decisions page, context and cost. The concierge opens lanes on demand (no cap), names each after the work and tells the operator the name. A repository belongs to at most one active lane; work touching it joins that lane |
 | Ambient awareness | An opt-in Claude Code **status line** in every session (`abacus · RUNNING · 2 in flight · 1 needs you`), enabled by the operator with `abacus statusline enable` |
 
 ## Why a dedicated session
@@ -26,9 +27,11 @@ repository, out of its own reach.
   history (read-only), `consult_memory`
 - write exactly one thing: `abacus-logbook ruling add --words "<verbatim>" --where agent:concierge --target …`
   (an approval of a plan names every draft bead it covers)
-- start the orchestrator or the planner, recording why:
-  `abacus-session start agent:orchestrator --reason "operator: <goal>"`
-- message the orchestrator or the planner with `HANDOFF`
+- open, extend and rename lanes, and look them up: `abacus-logbook lane open|add|rename|show|find|owner` (closing a
+  lane is the lane orchestrator's job, when its program completes)
+- start a lane's orchestrator or the planner, recording why:
+  `abacus-session start agent:orchestrator-<lane> --reason "operator: <goal>"`
+- message an orchestrator or the planner with `HANDOFF`
 
 **May not:** dispatch, decide, file beads, verify, start workers, or touch any repository.
 
@@ -37,10 +40,16 @@ This is enforced by a new **`role-commands`** guard. Every shell command must ma
 than files.
 
 ## Three moves for anything the operator says
-1. **Answer it** from durable state (what's running, what needs me, what happened to X).
-2. **Pass it on.** Record the words verbatim (`ruling add`), confirm the intent back in one line, start the planner
-   ("plan …") or the orchestrator ("build …", "work on …", a card's answer) if it isn't running, and send a
-   `HANDOFF … STATUS: decided`. For a build, name the whole chain when confirming.
+1. **Answer it** from durable state (what's running, what needs me, what happened to X). Answer only what was
+   asked: "how are we doing with the android work?" is answered from that lane alone (`abacus-logbook lane find`,
+   then `abacus-status --lane`). A general "how are we doing?" gives a line per lane. If the operator's words match
+   more than one lane, ask which.
+2. **Pass it on.** Record the words verbatim (`ruling add`), confirm the intent back in one line, and pick the lane:
+   the card's lane for a card's answer; the lane that owns the repositories involved (`lane owner`); the lane the
+   operator names; otherwise open a new lane named after the work (`lane open`) and announce it ("Started the
+   **android** lane"). Start the planner ("plan …") or that lane's orchestrator ("build …", "work on …", a card's
+   answer) if it isn't running, and send a `HANDOFF … STATUS: decided` with the `LANE:` line. For a build, name the
+   whole chain when confirming.
 3. **Talk it through first.** A remark, a "should", or a "maybe" isn't an instruction. Clarify. If it's still
    ambiguous but worth passing on, send `STATUS: lean`. The orchestrator never acts on a lean handoff as if the
    operator had decided.
@@ -73,6 +82,7 @@ Integrating Bitwarden's own Claude Code agents (on hold until the core is settle
 ## Done means
 - In Agent View, `agent:concierge` answers "what's running?" from durable state.
 - A goal typed to the concierge becomes one verbatim ruling, an on-demand orchestrator, and a completed program.
+- Two unrelated goals become two named lanes running side by side; asking about one answers about that one only.
 - A lean handoff produces a question, not work.
 - Any command outside the allowlist is refused.
 - The status line shows the program state in other sessions.
