@@ -19,7 +19,8 @@ Do these in order. Do not dispatch, decide or message a worker until step 9 prin
    - board closed, dispatch not verified → run `/verify-report` for it now
    - board open, dispatch closed/cancelled → flag it as a gap
    - worker `gone` with an open dispatch → it needs a fresh worker (ask before starting one if the plan changed)
-4. **Promises and rulings.** `abacus-logbook show asks` (everything you owe) and
+4. **Promises and rulings.** `abacus-logbook show asks` (everything you owe; in a lane, `show asks --lane <lane>`:
+   another lane's promises are that lane's, live or not, so never flag or close them) and
    `abacus-logbook show rulings-unrecorded` (operator words not yet on a bead: record them now via `/relay-ruling`;
    one that covers no bead is closed out with `--on none --reason`, step 6 there)
    and `abacus-logbook show rulings-unrelayed` (rulings a dispatched worker was never sent: relay them now).

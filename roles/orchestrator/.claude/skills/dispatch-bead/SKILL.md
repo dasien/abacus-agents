@@ -44,4 +44,5 @@ description: Send one bead to one worker session with a complete, bounded DISPAT
    to that worker going idle (SendMessage with `notify_when_idle: true` and empty content) instead of polling: you
    are woken when it finishes or stalls, which is far cheaper than periodic check-ins.
 7. `abacus-logbook dispatch sent <bead>`, and add a promise for the follow-up you owe:
-   `abacus-logbook promise add "verify <bead> report" --trigger "REPORT from coder:<repo>" --work-item <bead>`.
+   `abacus-logbook promise add "verify <bead> report" --trigger "REPORT from coder:<repo>" --work-item <bead>`
+   (plus `--lane <your lane>` in a lane).

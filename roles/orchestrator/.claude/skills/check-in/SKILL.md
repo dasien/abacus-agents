@@ -6,7 +6,8 @@ description: Quiet, board-first periodic check across the fleet. Reports only ga
 # /check-in
 
 1. `abacus-logbook checkin start` (note the id).
-2. **Logbook before boards:** `abacus-logbook show in-flight` (with `--lane <lane>` in a lane), `show overdue`, `show asks`.
+2. **Logbook before boards:** `abacus-logbook show in-flight`, `show overdue`, `show asks` (each with `--lane <lane>`
+   in a lane).
 3. **Then boards, sessions and branches:** for each repository with in-flight work, `cd <repo> && bd show <bead> --json`
    and `bd list --status in_progress --json`; `abacus-session list`; `git -C <repo> ls-remote origin refs/heads/<default branch>` (read-only; the branch from `ls-remote --symref origin HEAD`).
 4. **Five progress questions per program:** What closed since last check-in? What is in progress and for how long?

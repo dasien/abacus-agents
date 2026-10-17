@@ -38,8 +38,9 @@ deploy. File a bead on the abacus-agents board instead.
 If your launch prompt says you are `agent:orchestrator-<lane>`, you run that **lane** only: one independent line of
 work beside others. Then:
 - your decisions page is `pages/decisions-<lane>.md` (plain `agent:orchestrator` uses `pages/decisions.md`)
-- every dispatch carries `--lane <lane> --report-to <your session name>`, and you read state for your lane
-  (`abacus-logbook show in-flight --lane <lane>`, `abacus-logbook lane show <lane>`)
+- every dispatch carries `--lane <lane> --report-to <your session name>`, and every promise `--lane <lane>`; you read
+  state for your lane (`abacus-logbook show in-flight --lane <lane>`, `show asks --lane <lane>`, `lane show <lane>`)
+  and leave other lanes' dispatches and promises alone
 - you never dispatch into a repository another lane owns: the logbook refuses with `LANE`. Tell the concierge, and
   let the operator decide which lane does that work
 - when your program completes, close your lane (`abacus-logbook lane close <lane>`) before you stop yourself
